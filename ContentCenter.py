@@ -1,4 +1,8 @@
 import adsk.core, adsk.fusion, adsk.cam, traceback
+import sys
+
+sys.path.append("./Modules")
+
 import json
 import requests
 
@@ -15,6 +19,18 @@ parameterStack = []
 occurences = []
 jointOrigins = []
 idStack = []
+
+def initialize():
+    global num, lastImported, componentStack, timelineGroupStack, parameterStack, occurences, jointOrigins, idStack
+    num = 0
+    lastImported = None
+    componentStack = []
+    timelineGroupStack = []
+    parameterStack = []
+    occurences = []
+    jointOrigins = []
+    idStack = []
+
 
 def setMaterial(componentName, materialLibraryId, materialId):
     product = _app.activeProduct
@@ -308,7 +324,7 @@ class ShowPaletteCommandExecuteHandler(adsk.core.CommandEventHandler):
             # Create and display the palette.
             palette = _ui.palettes.itemById('myPalette')
             if not palette:
-                palette = _ui.palettes.add('myPalette', 'My Palette', HOST, True, True, True, 1000, 1000) # ./palette/build/index.html
+                palette = _ui.palettes.add('myPalette', 'Content Center', HOST, True, True, True, 1000, 1000) # ./palette/build/index.html
 
                 # Dock the palette to the right side of Fusion window.
                 palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
@@ -338,6 +354,7 @@ class ShowPaletteCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             onExecute = ShowPaletteCommandExecuteHandler()
             command.execute.add(onExecute)
             handlers.append(onExecute)
+            initialize()
         except:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
@@ -380,7 +397,8 @@ class MyCloseEventHandler(adsk.core.UserInterfaceGeneralEventHandler):
         super().__init__()
     def notify(self, args):
         try:
-            _ui.messageBox('Close button is clicked.')
+            return
+            #_ui.messageBox('Close button is clicked.')
         except:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
@@ -395,12 +413,13 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
             data = json.loads(htmlArgs.data)
             if "id" in data.keys() and "name" in data.keys():
                 path = HOST + data['name']
-                _ui.messageBox(path)
+                #_ui.messageBox(path)
                 resInput = insertContent(path)
                 idStack.append(data["id"])
                 args.returnData = str({"id": data['id'],"name": resInput['name'], 'parameters': resInput['parameters'], 'jointOrigins': resInput['jointOrigins'] })
 
             if 'getJointOrigins' in data.keys():
+                initialize()
                 jointOrigins = getAllJointOrigins()
                 args.returnData = str({'jointOrigins': jointOrigins })
 
@@ -437,7 +456,7 @@ def run(context):
         # Add a command that displays the panel.
         showPaletteCmdDef = _ui.commandDefinitions.itemById('showPalette')
         if not showPaletteCmdDef:
-            showPaletteCmdDef = _ui.commandDefinitions.addButtonDefinition('showPalette', 'Show custom palette', 'Show the custom palette', '')
+            showPaletteCmdDef = _ui.commandDefinitions.addButtonDefinition('showPalette', 'Customizable Content Center', 'Show the customizable content center', './resources')
 
             # Connect to Command Created event.
             onCommandCreated = ShowPaletteCommandCreatedHandler()
@@ -446,14 +465,14 @@ def run(context):
 
 
         # Add a command under ADD-INS panel which sends information from Fusion to the palette's HTML.
-        sendInfoCmdDef = _ui.commandDefinitions.itemById('sendInfoToHTML')
-        if not sendInfoCmdDef:
-            sendInfoCmdDef = _ui.commandDefinitions.addButtonDefinition('sendInfoToHTML', 'Send info to Palette', 'Send Info to Palette HTML', '')
+        #sendInfoCmdDef = _ui.commandDefinitions.itemById('sendInfoToHTML')
+        #if not sendInfoCmdDef:
+        #    sendInfoCmdDef = _ui.commandDefinitions.addButtonDefinition('sendInfoToHTML', 'Send info to Palette', 'Send Info to Palette HTML', '')
 
             # Connect to Command Created event.
-            onCommandCreated = SendInfoCommandCreatedHandler()
-            sendInfoCmdDef.commandCreated.add(onCommandCreated)
-            handlers.append(onCommandCreated)
+        #    onCommandCreated = SendInfoCommandCreatedHandler()
+        #    sendInfoCmdDef.commandCreated.add(onCommandCreated)
+        #    handlers.append(onCommandCreated)
 
         # Add the command to the toolbar.
         panel = _ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
@@ -461,9 +480,9 @@ def run(context):
         if not cntrl:
             panel.controls.addCommand(showPaletteCmdDef)
 
-        cntrl = panel.controls.itemById('sendInfoToHTML')
-        if not cntrl:
-            panel.controls.addCommand(sendInfoCmdDef)
+        #cntrl = panel.controls.itemById('sendInfoToHTML')
+        #if not cntrl:
+        #    panel.controls.addCommand(sendInfoCmdDef)
     except:
         if _ui:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
