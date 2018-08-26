@@ -414,8 +414,11 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
             if "id" in data.keys() and "name" in data.keys():
                 path = HOST + data['name']
                 #_ui.messageBox(path)
-                resInput = insertContent(path)
-                idStack.append(data["id"])
+                try:
+                    resInput = insertContent(path)
+                    idStack.append(data["id"])
+                except:
+                    pass
                 args.returnData = str({"id": data['id'],"name": resInput['name'], 'parameters': resInput['parameters'], 'jointOrigins': resInput['jointOrigins'] })
 
             if 'getJointOrigins' in data.keys():
@@ -425,26 +428,42 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
 
             if 'parameter' in data.keys() and 'expression' in data.keys():
                 design = _app.activeProduct
-                param = design.userParameters.itemByName(data['parameter'])
-                param.expression = data['expression']
+                try:
+                    param = design.userParameters.itemByName(data['parameter'])
+                    param.expression = data['expression']
+                except:
+                    pass
 
                 if 'isThreadSize' in data.keys():
-                    adaptThread(data['parameter'], data['expression'])
+                    try:
+                        adaptThread(data['parameter'], data['expression'])
+                    except:
+                        pass
                 if 'isThreadLength' in data.keys():
-                    adaptThreadLength(data['parameter'], data['expression'])
+                    try:
+                        adaptThreadLength(data['parameter'], data['expression'])
+                    except:
+                        pass
 
                 args.returnData = str({'expression': param.expression})
             if 'jointOriginSelection' in data.keys() and 'jointOrigin' in data.keys():
-                createJoins(data['jointOrigin'], data['jointOriginSelection'])
+                try:
+                    createJoins(data['jointOrigin'], data['jointOriginSelection'])
+                except:
+                    pass
                 args.returnData = str(data)
             if 'getMaterials' in data.keys():
                 result = getMaterials()
                 args.returnData = str(result)
             if 'setMaterial' in data.keys() and 'name' in data.keys() and 'materialId' in data.keys() and 'materialLibraryId' in data.keys():
-                result = setMaterial(data['name'], data['materialLibraryId'], data['materialId'])
+                try:                
+                    result = setMaterial(data['name'], data['materialLibraryId'], data['materialId'])
+                except:
+                    pass
                 args.returnData = str({"setMaterial": "jio"})
         except:
-            _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            pass
+            #_ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 
 def run(context):
@@ -475,7 +494,7 @@ def run(context):
         #    handlers.append(onCommandCreated)
 
         # Add the command to the toolbar.
-        panel = _ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+        panel = _ui.allToolbarPanels.itemById('InsertPanel') #SolidScriptsAddinsPanel
         cntrl = panel.controls.itemById('showPalette')
         if not cntrl:
             panel.controls.addCommand(showPaletteCmdDef)
@@ -496,7 +515,7 @@ def stop(context):
             palette.deleteMe()
 
         # Delete controls and associated command definitions created by this add-ins
-        panel = _ui.allToolbarPanels.itemById('SolidScriptsAddinsPanel')
+        panel = _ui.allToolbarPanels.itemById('InsertPanel')
         cmd = panel.controls.itemById('showPalette')
         if cmd:
             cmd.deleteMe()
