@@ -115,16 +115,11 @@ def run(context):
         importlib.reload(ContentCenter)
 
         ContentCenter.run(context)
+        update(context)
     except:
         _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
     finally:
         del sys.path[module_dir]
-
-    try:
-        update(context)
-    except:
-        _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
-        pass
 
 def stop(context):
     import ContentCenter
