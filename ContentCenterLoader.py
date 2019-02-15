@@ -14,7 +14,7 @@ sys.path.append("./modules/modules")
 import pip
 import requests
 
-version = "v1.1"
+version = "v1.2"
 _app = None
 _ui = None
 
@@ -34,7 +34,7 @@ def install(path, requirementsFileName):
 
 
 def update(context):
-    global version
+    global version, _ui
     currentFolder = os.path.dirname(os.path.realpath(__file__))
     currentFolder = os.path.join(currentFolder, '')
     # cwd = os.getcwd()
@@ -101,6 +101,7 @@ def update(context):
                         _ui.messageBox(str('Updated Add-In Custom Content Center'))
 
 def run(context):
+    global _app, _ui
     script_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
     script_dir = os.path.dirname(script_path)
     module_dir = os.path.abspath(os.path.join(script_dir, "modules"))
