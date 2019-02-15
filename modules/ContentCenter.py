@@ -1,20 +1,13 @@
 import adsk.core, adsk.fusion, adsk.cam, traceback
 import sys
-
-sys.path.append("./Modules")
-
 import json
-import requests
 import math
 
-import os
-import tempfile
-import tarfile
-import shutil
-import pip
+sys.path.append("./modules")
+
+import requests
 
 # global set of event handlers to keep them referenced for the duration of the command
-version = "v1.1"
 handlers = []
 _handlers = []
 _app = adsk.core.Application.cast(None)
@@ -689,82 +682,6 @@ def getUserParameters():
                         userParamNames.append(d)
 
     return json.dumps({'userParameters': userParamNames})
-
-def versiontuple(v):
-    v = v.replace('v', '')
-    return tuple(map(int, (v.split("."))))
-
-def install(path, requirementsFileName):
-    if hasattr(pip, 'main'):
-        with open(requirementsFileName) as f:
-            for line in f:
-                pip.main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
-    else:
-        with open(requirementsFileName) as f:
-            for line in f:
-                pip._internal.main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
-
-
-def update():
-    global version
-    currentFolder = os.path.dirname(os.path.realpath(__file__))
-    currentFolder = os.path.join(currentFolder, '')
-    # cwd = os.getcwd()
-
-    releasesURI = 'https://api.github.com/repos/Bitfroest/contentcenter_fusion360/releases'
-
-    r = requests.get(releasesURI)
-
-    if r.status_code == 200:
-        releases = r.json()
-        tag_name = releases[0]['tag_name']
-        tarball_url = releases[0]['tarball_url']
-        published_at = releases[0]['published_at']
-        # _ui.messageBox(str(tag_name))
-
-        if versiontuple(tag_name) > versiontuple(version):
-            # _ui.messageBox('Performing Update')
-            # Create a local temporary folder
-            with tempfile.TemporaryDirectory() as temp:
-                tarball = requests.get(tarball_url)
-                if tarball.status_code == 200:
-                    tempFileName = os.path.join(temp, str(tag_name+'.tar.gz'))
-                    tempFile = open(tempFileName, 'wb')
-                    tempFile.write(tarball.content)
-                    tempFile.close()
-
-                    tar = tarfile.open(tempFileName, "r:gz")
-
-                    folderName = os.path.join(tar.getmembers()[0].name.split('/')[0], '')
-                    tar.extractall(path=temp)
-                    tar.close()
-
-                    tempDirectory = os.path.join(temp, folderName)
-
-                    # delete all files in directory
-                    for file in os.listdir(currentFolder):
-                        filePath = os.path.join(currentFolder, file)
-                        try:
-                            if os.path.isfile(filePath):
-                                os.unlink(filePath)
-                            elif os.path.isdir(filePath): shutil.rmtree(filePath)
-                        except Exception as e:
-                            print(e)
-
-                    # delete directory
-                    os.rmdir(currentFolder)
-
-                    # copy all extracted contents to add in folder
-                    shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
-
-                    if os.path.isfile(os.path.join(currentFolder, 'requirements.txt')):
-                        modulesFolder= os.path.join(currentFolder, 'Modules')
-                        if not os.path.exists(modulesFolder):
-                            os.makedirs(modulesFolder)
-                        install(modulesFolder, os.path.join(currentFolder, 'requirements.txt'))
-
-                    if os.path.isfile(os.path.join(currentFolder, 'ContentCenter.py')):
-                        _ui.messageBox(str('Updated Add-In Custom Content Center restart Fusion please'))
 
 # Event handler that reacts to any changes the user makes to any of the command inputs.
 class SelectionInputChangedHandler(adsk.core.InputChangedEventHandler):
