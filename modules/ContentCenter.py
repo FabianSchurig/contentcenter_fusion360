@@ -541,7 +541,7 @@ def adaptThreadLength(componentName, parameter, threadExpression):
     #threadLocation = thread.threadLocation
 
     thread.timelineObject.rollTo(True)
-    thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString(threadExpression + " -0.0000000001"), adsk.fusion.ThreadLocations.HighEndThreadLocation)
+    thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString(threadExpression + " -0.0000000001"), thread.threadLocation)
     design.timeline.moveToEnd()
 
 def insertContent(id, name, url):
