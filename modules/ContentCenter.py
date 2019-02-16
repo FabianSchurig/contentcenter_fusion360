@@ -13,7 +13,7 @@ _handlers = []
 _app = adsk.core.Application.cast(None)
 _ui = adsk.core.UserInterface.cast(None)
 num = 0
-HOST = "http://localhost:3000"#"https://custom.hk-fs.de"#"http://localhost:3000"#
+HOST = "https://custom.hk-fs.de"#"http://localhost:3000"#
 lastImported = None
 componentStack = []
 timelineGroupStack = []
@@ -571,7 +571,10 @@ def insertContent(id, name, url):
         previousGroupNames.append(item.name)
 
     r = requests.get(url, allow_redirects=True)
-    archiveFileName = url[url.rfind("/")+1:]
+    keepcharacters = (' ','.','_')
+    archiveFileNameUn = name + '.f3d' #url[url.rfind("/")+1:]
+    archiveFileName = "".join(c for c in archiveFileNameUn if c.isalnum() or c in keepcharacters).rstrip()
+
     open(archiveFileName, 'wb').write(r.content)
 
 
@@ -956,6 +959,7 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
                 try:
                     param = design.userParameters.itemByName(data['parameter'])
                     param.expression = data['expression']
+                    design.timeline.moveToEnd()
                 except:
                     pass
 
