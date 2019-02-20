@@ -2,8 +2,13 @@ import adsk.core, adsk.fusion, adsk.cam, traceback
 import sys
 import json
 import math
+import os
+import inspect
 
-sys.path.append("./modules")
+script_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
+script_dir = os.path.dirname(script_path)
+module_dir = os.path.abspath(os.path.join(script_dir, "modules"))
+sys.path.append(module_dir)
 
 import requests
 

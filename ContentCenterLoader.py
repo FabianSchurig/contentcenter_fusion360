@@ -8,8 +8,12 @@ import tempfile
 import tarfile
 import shutil
 
-sys.path.append("./modules")
-sys.path.append("./modules/modules")
+script_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
+script_dir = os.path.dirname(script_path)
+module_dir = os.path.abspath(os.path.join(script_dir, "modules"))
+sys.path.append(module_dir)
+module_module_dir = os.path.abspath(os.path.join(module_dir, "modules"))
+sys.path.append(module_module_dir)
 
 import pip
 import requests
