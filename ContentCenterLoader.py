@@ -57,7 +57,7 @@ def update(context):
     if isMac:
         proc = subprocess.Popen(['curl', releasesURI], stdout=subprocess.PIPE)
         (out, err) = proc.communicate()
-        j = json.loads(out)
+        j = json.loads(out.decode('utf-8'))
         tag_name = j[0]['tag_name']
         tarball_url = j[0]['tarball_url']
         published_at = j[0]['published_at']
@@ -66,10 +66,10 @@ def update(context):
         out = subprocess.check_output(['curl', '-I', releasesURI])
 
         with tempfile.TemporaryDirectory() as temp:
-            if out.decode().find('Status: 302 Found') > 0:
+            if out.decode().find('Status: 200 OK') > 0:
                 # Download the tarball file in the temporary folder
                 tempFileName = os.path.join(temp, str(tag_name+'.tar.gz'))
-                subprocess.call(['curl', '-o', tempFileName, '-L', releasesURI])
+                subprocess.call(['curl', '-o', tempFileName, '-L', tarball_url])
 
                 tar = tarfile.open(tempFileName, "r:gz")
 
