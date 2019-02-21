@@ -44,7 +44,7 @@ def install(path, requirementsFileName):
     else:
         with open(requirementsFileName) as f:
             for line in f:
-                subprocess.check_call(['python','-m','pip','install', '-U', line, '-t', path, '--ignore-installed', '-q'])
+                subprocess.check_call([sys.executable,'-m','pip','install', '-U', line, '-t', path, '--ignore-installed', '-q'])
 
 
 def update(context):
