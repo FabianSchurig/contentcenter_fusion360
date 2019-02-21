@@ -57,10 +57,10 @@ def update(context):
     if isMac:
         proc = subprocess.Popen(['curl', releasesURI], stdout=subprocess.PIPE)
         (out, err) = proc.communicate()
-        json = json.loads(out)
-        tag_name = json[0]['tag_name']
-        tarball_url = json[0]['tarball_url']
-        published_at = json[0]['published_at']
+        j = json.loads(out)
+        tag_name = j[0]['tag_name']
+        tarball_url = j[0]['tarball_url']
+        published_at = j[0]['published_at']
 
         # Check if the URL is reachable
         out = subprocess.check_output(['curl', '-I', releasesURI])
