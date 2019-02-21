@@ -21,7 +21,7 @@ sys.path.append(module_module_dir)
 import pip
 import requests
 
-version = "v1.2.2"
+version = "v1.2.4"
 _app = None
 _ui = None
 
