@@ -4,6 +4,8 @@ import json
 import math
 import os
 import inspect
+import platform
+import subprocess
 
 script_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
 script_dir = os.path.dirname(script_path)
@@ -26,6 +28,12 @@ parameterStack = []
 occurences = []
 jointOrigins = []
 idStack = []
+
+isMac = False
+
+# checks if OS is MacOS
+if platform.system() == 'Darwin':
+    isMac = True
 
 def initialize():
     global num, lastImported, componentStack, timelineGroupStack, parameterStack, occurences, jointOrigins, idStack
@@ -550,7 +558,7 @@ def adaptThreadLength(componentName, parameter, threadExpression):
     design.timeline.moveToEnd()
 
 def insertContent(id, name, url):
-    global lastImported, componentStack, timelineGroupStack, parameterStack
+    global lastImported, componentStack, timelineGroupStack, parameterStack, isMac, script_dir
     des = adsk.fusion.Design.cast(_app.activeProduct)
 
     previousParams = des.userParameters
@@ -575,13 +583,17 @@ def insertContent(id, name, url):
     for item in design.timeline.timelineGroups:
         previousGroupNames.append(item.name)
 
-    r = requests.get(url, allow_redirects=True)
+    downloadDir = os.path.join(script_dir, 'downloads')
+    os.makedirs(downloadDir, exist_ok=True)
+
     keepcharacters = (' ','.','_')
     archiveFileNameUn = name + '.f3d' #url[url.rfind("/")+1:]
-    archiveFileName = "".join(c for c in archiveFileNameUn if c.isalnum() or c in keepcharacters).rstrip()
-
-    open(archiveFileName, 'wb').write(r.content)
-
+    archiveFileName = os.path.join(downloadDir, "".join(c for c in archiveFileNameUn if c.isalnum() or c in keepcharacters).rstrip())
+    if isMac:
+        subprocess.call(['curl', '-o', archiveFileName, '-L', url])
+    else:
+        r = requests.get(url, allow_redirects=True)
+        open(archiveFileName, 'wb').write(r.content)
 
     archiveOptions = importManager.createFusionArchiveImportOptions(archiveFileName)
     # Import archive file to root component
