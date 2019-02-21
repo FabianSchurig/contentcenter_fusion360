@@ -36,6 +36,7 @@ def versiontuple(v):
     return tuple(map(int, (v.split("."))))
 
 def install(path, requirementsFileName):
+    os.makedirs(path, exist_ok=True)
     if hasattr(pip, 'main'):
         with open(requirementsFileName) as f:
             for line in f:
