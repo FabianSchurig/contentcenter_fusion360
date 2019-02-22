@@ -64,53 +64,54 @@ def update(context):
         tarball_url = j[0]['tarball_url']
         published_at = j[0]['published_at']
 
-        # Check if the URL is reachable
-        out = subprocess.check_output(['curl', '-I', releasesURI])
+        if versiontuple(tag_name) > versiontuple(version):
+            # Check if the URL is reachable
+            out = subprocess.check_output(['curl', '-I', releasesURI])
 
-        with tempfile.TemporaryDirectory() as temp:
-            if out.decode().find('Status: 200 OK') > 0:
-                # Download the tarball file in the temporary folder
-                tempFileName = os.path.join(temp, str(tag_name+'.tar.gz'))
-                subprocess.call(['curl', '-o', tempFileName, '-L', tarball_url])
+            with tempfile.TemporaryDirectory() as temp:
+                if out.decode().find('Status: 200 OK') > 0:
+                    # Download the tarball file in the temporary folder
+                    tempFileName = os.path.join(temp, str(tag_name+'.tar.gz'))
+                    subprocess.call(['curl', '-o', tempFileName, '-L', tarball_url])
 
-                tar = tarfile.open(tempFileName, "r:gz")
+                    tar = tarfile.open(tempFileName, "r:gz")
 
-                folderName = os.path.join(tar.getmembers()[0].name.split('/')[0], '')
-                tar.extractall(path=temp)
-                tar.close()
+                    folderName = os.path.join(tar.getmembers()[0].name.split('/')[0], '')
+                    tar.extractall(path=temp)
+                    tar.close()
 
-                tempDirectory = os.path.join(temp, folderName)
+                    tempDirectory = os.path.join(temp, folderName)
 
-                # delete all files in directory
-                for file in os.listdir(currentFolder):
-                    filePath = os.path.join(currentFolder, file)
-                    try:
-                        if os.path.isfile(filePath):
-                            os.unlink(filePath)
-                        elif os.path.isdir(filePath): shutil.rmtree(filePath)
-                    except Exception as e:
-                        print(e)
+                    # delete all files in directory
+                    for file in os.listdir(currentFolder):
+                        filePath = os.path.join(currentFolder, file)
+                        try:
+                            if os.path.isfile(filePath):
+                                os.unlink(filePath)
+                            elif os.path.isdir(filePath): shutil.rmtree(filePath)
+                        except Exception as e:
+                            print(e)
 
-                # delete directory
-                os.rmdir(currentFolder)
+                    # delete directory
+                    os.rmdir(currentFolder)
 
-                # copy all extracted contents to add in folder
-                shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
+                    # copy all extracted contents to add in folder
+                    shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
 
-                if os.path.isfile(os.path.join(currentFolder, 'requirements.txt')):
-                    modulesFolder= os.path.join(os.path.join(currentFolder, 'modules'), 'modules')
-                    if not os.path.exists(modulesFolder):
-                        os.makedirs(modulesFolder)
-                    install(modulesFolder, os.path.join(currentFolder, 'requirements.txt'))
+                    if os.path.isfile(os.path.join(currentFolder, 'requirements.txt')):
+                        modulesFolder= os.path.join(os.path.join(currentFolder, 'modules'), 'modules')
+                        if not os.path.exists(modulesFolder):
+                            os.makedirs(modulesFolder)
+                        install(modulesFolder, os.path.join(currentFolder, 'requirements.txt'))
 
-                if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
-                    # updated and now reload the function
-                    try:
-                        reload(context)
-                    except:
-                        _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
-                        pass
-                    _ui.messageBox(str('Updated Add-In Custom Content Center'))
+                    if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
+                        # updated and now reload the function
+                        try:
+                            reload(context)
+                        except:
+                            _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+                            pass
+                        _ui.messageBox(str('Updated Add-In Custom Content Center'))
 
     else:
         r = requests.get(releasesURI)
