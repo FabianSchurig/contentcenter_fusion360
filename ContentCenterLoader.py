@@ -20,8 +20,9 @@ sys.path.append(module_module_dir)
 
 import pip
 import requests
+import lockfile
 
-version = "v1.2.4"
+version = "v1.2.4.2"
 _app = None
 _ui = None
 
