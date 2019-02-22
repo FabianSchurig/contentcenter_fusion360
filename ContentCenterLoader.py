@@ -43,9 +43,9 @@ def install(path, requirementsFileName):
                 pip.main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
     else:
         with open(requirementsFileName) as f:
-            py_interpreter = os.path.join(os.__file__.split("lib/")[0],"bin","python")
+            from pip._internal import main
             for line in f:
-                subprocess.check_call([py_interpreter,'-m','pip','install', '-U', line, '-t', path, '--ignore-installed', '-q'])
+                main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
 
 
 def update(context):
