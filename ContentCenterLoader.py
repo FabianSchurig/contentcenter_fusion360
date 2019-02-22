@@ -93,7 +93,10 @@ def update(context):
                     os.rmdir(currentFolder)
 
                     # copy all extracted contents to add in folder
-                    shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
+                    try:
+                        shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
+                    except:
+                        _ui.messageBox('Content Center update failed, please install/repair again.')
 
                     if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
                         # updated and now reload the function
@@ -146,7 +149,10 @@ def update(context):
                         os.rmdir(currentFolder)
 
                         # copy all extracted contents to add in folder
-                        shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
+                        try:
+                            shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
+                        except:
+                            _ui.messageBox('Content Center update failed, please install/repair again.')
 
                         if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
                             # updated and now reload the function

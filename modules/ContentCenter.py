@@ -1130,7 +1130,7 @@ def stop(context):
         if cmdDef:
             cmdDef.deleteMe()
 
-        _ui.messageBox('Stop addin')
+        #_ui.messageBox('Stop addin')
     except:
         if _ui:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
