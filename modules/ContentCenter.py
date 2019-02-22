@@ -12,7 +12,10 @@ script_dir = os.path.dirname(script_path)
 module_dir = os.path.abspath(os.path.join(script_dir, "modules"))
 sys.path.append(module_dir)
 
-import requests
+try:
+    import requests
+except:
+    pass
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []

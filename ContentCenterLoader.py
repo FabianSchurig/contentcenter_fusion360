@@ -18,11 +18,11 @@ sys.path.append(module_dir)
 module_module_dir = os.path.abspath(os.path.join(module_dir, "modules"))
 sys.path.append(module_module_dir)
 
-import pip
-import requests
-import lockfile
+try:
+    import requests
+except:
+    pass
 
-version = "v1.2.4.2"
 _app = None
 _ui = None
 
@@ -36,34 +36,30 @@ def versiontuple(v):
     v = v.replace('v', '')
     return tuple(map(int, (v.split("."))))
 
-def install(path, requirementsFileName):
-    os.makedirs(path, exist_ok=True)
-    if hasattr(pip, 'main'):
-        with open(requirementsFileName) as f:
-            for line in f:
-                pip.main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
-    else:
-        with open(requirementsFileName) as f:
-            from pip._internal import main
-            for line in f:
-                main(['install', '-U', line, '-t', path, '--ignore-installed', '-q'])
-
-
 def update(context):
-    global version, _ui, isMac
+    global _ui, isMac
     currentFolder = os.path.dirname(os.path.realpath(__file__))
     currentFolder = os.path.join(currentFolder, '')
     # cwd = os.getcwd()
+    try:
+        with open(os.path.join(script_dir,'version.json')) as f:
+            data = json.load(f)
+            version = data['tag_name']
+            print(version)
+    except:
+        version = "999"
+        print('Failed:\n{}'.format(traceback.format_exc()))
+        pass
 
-    releasesURI = 'https://api.github.com/repos/Bitfroest/contentcenter_fusion360/releases'
+    releasesURI = 'https://custom.hk-fs.de/uploads/version.json'
 
     if isMac:
         proc = subprocess.Popen(['curl', releasesURI], stdout=subprocess.PIPE)
         (out, err) = proc.communicate()
         j = json.loads(out.decode('utf-8'))
-        tag_name = j[0]['tag_name']
-        tarball_url = j[0]['tarball_url']
-        published_at = j[0]['published_at']
+        tag_name = j['tag_name']
+        tarball_url = j['tarball_url']
+        published_at = j['published_at']
 
         if versiontuple(tag_name) > versiontuple(version):
             # Check if the URL is reachable
@@ -99,12 +95,6 @@ def update(context):
                     # copy all extracted contents to add in folder
                     shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
 
-                    if os.path.isfile(os.path.join(currentFolder, 'requirements.txt')):
-                        modulesFolder= os.path.join(os.path.join(currentFolder, 'modules'), 'modules')
-                        if not os.path.exists(modulesFolder):
-                            os.makedirs(modulesFolder)
-                        install(modulesFolder, os.path.join(currentFolder, 'requirements.txt'))
-
                     if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
                         # updated and now reload the function
                         try:
@@ -118,9 +108,9 @@ def update(context):
         r = requests.get(releasesURI)
         if r.status_code == 200:
             releases = r.json()
-            tag_name = releases[0]['tag_name']
-            tarball_url = releases[0]['tarball_url']
-            published_at = releases[0]['published_at']
+            tag_name = releases['tag_name']
+            tarball_url = releases['tarball_url']
+            published_at = releases['published_at']
             # _ui.messageBox(str(tag_name))
 
             if versiontuple(tag_name) > versiontuple(version):
@@ -157,12 +147,6 @@ def update(context):
 
                         # copy all extracted contents to add in folder
                         shutil.copytree(tempDirectory, os.path.join(currentFolder, ''))
-
-                        if os.path.isfile(os.path.join(currentFolder, 'requirements.txt')):
-                            modulesFolder= os.path.join(os.path.join(currentFolder, 'modules'), 'modules')
-                            if not os.path.exists(modulesFolder):
-                                os.makedirs(modulesFolder)
-                            install(modulesFolder, os.path.join(currentFolder, 'requirements.txt'))
 
                         if os.path.isfile(os.path.join(os.path.join(currentFolder, 'modules'), 'ContentCenter.py')):
                             # updated and now reload the function
