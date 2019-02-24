@@ -512,6 +512,10 @@ def adaptThread(componentName, parameter, threadExpression):
     # get the root component of the active design.
     component = design.allComponents.itemByName(componentName)
 
+    # return if component not found
+    if not component:
+        return
+
     # iterate through all timeline groups and expand them to work on the thread
     for item in design.timeline.timelineGroups:
         item.isCollapsed = False
@@ -578,6 +582,10 @@ def adaptThreadLength(componentName, parameter, threadExpression):
 
     # get the root component of the active design.
     component = design.allComponents.itemByName(componentName)
+
+    # return if component not found
+    if not component:
+        return
 
     # iterate through all timeline groups and expand them to work on the thread
     for item in design.timeline.timelineGroups:
