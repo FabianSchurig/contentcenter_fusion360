@@ -519,6 +519,8 @@ def adaptThread(componentName, parameter, threadExpression):
     threadFeatures = component.features.threadFeatures
 
     # get thread
+    if threadFeatures.count < 1:
+        return
     thread = threadFeatures.item(threadFeatures.count - 1)
     #threadLocation = thread.threadLocation
 
@@ -532,9 +534,40 @@ def adaptThread(componentName, parameter, threadExpression):
     # create the threadInfo according to the query result
     if recommendData[0] :
         threadInfo = threadFeatures.createThreadInfo(isInternal, defaultThreadType, recommendData[1], recommendData[2])
+        # roll before thread to change
         thread.timelineObject.rollTo(True)
-        thread.threadInfo = threadInfo
+        if thread.threadLength:
+            threadLength = thread.threadLength.expression
+        else:
+            threadLength = None
+        isFullLength = thread.isFullLength
+
+        # try to set the new threadInfo
+        try:
+            # set the thread length to smallest possible threadLength to prevent invalid thread length error
+            if thread.threadOffset:
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
+            else:
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"), adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
+
+            # set threadInfo
+            thread.threadInfo = threadInfo
+
+            # set previous threadSize
+            if isFullLength:
+                thread.isFullLength = isFullLength
+            elif thread.threadOffset and threadLength:
+                print(str(threadLength))
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
+            elif threadLength:
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"), adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
+        except:
+            print('Failed:\n{}'.format(traceback.format_exc()))
+            pass
+        #if thread.healthState > 0:
+        #    print(str(thread.healthState))
         design.timeline.moveToEnd()
+        #print(str(thread.healthState))
 
 def adaptThreadLength(componentName, parameter, threadExpression):
     # get the design
