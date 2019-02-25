@@ -63,10 +63,10 @@ def update(context):
 
         if versiontuple(tag_name) > versiontuple(version):
             # Check if the URL is reachable
-            out = subprocess.check_output(['curl', '-I', releasesURI])
+            out = subprocess.check_output(['curl', '-I', tarball_url])
 
             with tempfile.TemporaryDirectory() as temp:
-                if out.decode().find('Status: 200 OK') > 0:
+                if out.decode().find('200') > 0:
                     # Download the tarball file in the temporary folder
                     tempFileName = os.path.join(temp, str(tag_name+'.tar.gz'))
                     subprocess.call(['curl', '-o', tempFileName, '-L', tarball_url])
