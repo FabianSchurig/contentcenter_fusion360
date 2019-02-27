@@ -6,8 +6,49 @@ Choose from different customizable content and insert your selection into your F
 Watch a video on how to use it.  
 [![How to use it](https://img.youtube.com/vi/OzHQy3awX9Q/0.jpg)](https://www.youtube.com/watch?v=OzHQy3awX9Q)
 
+### Insert Tab
+Here you can select a preset and insert the part. After insertion the preset will be applied. You can also change your preset at any time after insertion. If you want to add the same part again, simply insert it twice and then change the preset of the second part accordingly after insertion. Or simply go to the Documents Content Tab and change it there.
+
+### Documents Content Tab
+Here you find a list containing all commponents of your active Fusion 360 document with the depending user parameters. If a component was previously inserted, you can change the presets here again. If a preset is not enough you can also change all the parameters as you want. If you inserted the same component twice, you will see here both components which might have different presets.
+
+### Joints Tab
+The Joints Tab is for creating Joints of the inserted components. You can multiply one component and add it to all selected JointOrigins or to all Occurrences of another component.
+
 ## Available Content
-You can browse throught the available content on my website https://custom.hk-fs.de/insert. I try to add more content over time. If you miss a part please let me know and I will try my best to add it.
+You can browse throught the available content on my website https://custom.hk-fs.de/. I try to add more content over time. If you miss a part please let me know and I will try my best to add it.
+
+Currently I have 8 different parts with more than 1000 presets to chose from.
+- cylinder head hex screw
+  - ISO 4762 - 287 presets
+- hexagon nut DIN
+  - DIN 934 - 54 presets
+- hexagon nut ISO ~208 presets
+  - ISO 4032
+  - ISO 4033
+  - ISO 4034
+  - ISO 4035
+  - ISO 4775
+  - ISO 7413
+  - ISO 7414
+  - ISO 7417
+  - ISO 8673
+  - ISO 8674
+  - ISO 8675
+- flat head hex screw
+  - DIN 7991 - 109 presets
+- button head hex screw
+  - ISO 7380-1 - 79 presets
+- flat washer
+  - ISO 7089 - 26 presets
+- hexagon screw
+  - ISO 4014 - 289 presets
+- other
+  - DIN 920 - 6 presets  
+
+_as of 26/02/2019_  
+
+If you miss a part, please create an issue or message me. I will add it as soon as possible!
 
 ## Installation
 
@@ -76,6 +117,9 @@ Change between designs in not possible so far. __Hit F5__ on the Panel of the Co
 ~~Some preset names are empty because someone added presets with an empty name.~~  
 I try to delete empty or faulty presets or content as fast as I can.  
 
+MacOS React-Select (Selection of Presets) is not possible via left mouse click due to too old browser Version (Safari 2). Arrow keys and Enter will work instead.   
+
+No back button if browser palette is leaving the Add-In (e.g to Github or Youtube). Workaround is to press right mouse button and go back.
 
 
 
