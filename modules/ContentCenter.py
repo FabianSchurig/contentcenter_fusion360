@@ -134,7 +134,7 @@ def compareOrigins(firstOrigin,secondOrigin):
         return True
     return False
 
-def jointExists(progressDialog, joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, jointOriginNameTwo):
+def jointExists( joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, jointOriginNameTwo):
     # Get active design
     _app = adsk.core.Application.get()
     _ui = _app.userInterface
@@ -148,11 +148,53 @@ def jointExists(progressDialog, joints, occurrenceOne, occurrencesTwo, jointOrig
         isRoot = True
 
     rstr = "bla\n"
-    progressDialog.title = str(' ' + occurrenceOne.name + '.' + jointOriginNameOne + ' - ' + jointOriginNameTwo)
-    progressDialog.maximumValue = len(joints)
-    progressDialog.reset()
-    index = 0
+    #progressDialog.reset()
+    #progressDialog.title = str(' ' + occurrenceOne.name + '.' + jointOriginNameOne + ' - ' + jointOriginNameTwo)
+    #progressDialog.maximumValue = progressDialog.maximumValue + occurrencesTwo.count
 
+    #index = 0
+    #progressDialog.progressValue = index
+
+    # get all joint name tuples where occurrenceOne was used
+    jointDicts = []
+    for joint in joints:
+        occurrenceOneName = joint.occurrenceOne.name
+        if joint.occurrenceTwo:
+            occurrenceTwoName = joint.occurrenceTwo.name
+        else:
+            occurrenceTwoName = None
+        if occurrenceOneName == occurrenceOne.name or occurrenceTwoName == occurrenceOne.name:
+            jointDict = {}
+            jointDict["one"] = occurrenceOneName
+            jointDict["two"] = occurrenceTwoName
+            jointDict["joint"] = joint
+            jointDicts.append(jointDict)
+
+    #_ui.messageBox(str(jointDicts))
+
+    for occurrenceTwo in occurrencesTwo:
+        #index += 1
+        #progressDialog.progressValue = progressDialog.progressValue + 1
+        for jointDict in jointDicts:
+            if jointDict["one"] == occurrenceOne.name and jointDict["two"] == occurrenceTwo.name or jointDict["two"] == occurrenceOne.name and jointDict["one"] == occurrenceTwo.name:
+                #_ui.messageBox("exists")
+                joint = jointDict["joint"]
+                if joint.geometryOrOriginOne.objectType == adsk.fusion.JointGeometry.classType() \
+                and joint.geometryOrOriginTwo.objectType == adsk.fusion.JointGeometry.classType() \
+                and occurrenceTwo.name == joint.occurrenceOne.name or isRoot:
+                    if isRoot:
+                        one = occurrenceOne.jointOrigins.itemByName(jointOriginNameOne).geometry.origin
+                    else:
+                        one = occurrenceOne.component.jointOrigins.itemByName(jointOriginNameOne).createForAssemblyContext(occurrenceOne).geometry.origin
+                    two = joint.geometryOrOriginTwo.origin
+                    three = joint.geometryOrOriginOne.origin
+                    four = occurrenceTwo.component.jointOrigins.itemByName(jointOriginNameTwo).createForAssemblyContext(occurrenceTwo).geometry.origin
+
+                    if compareOrigins(one,three) and compareOrigins(two,four) or compareOrigins(one,two) and compareOrigins(three,four):
+                        #_ui.messageBox("yes")
+                        #progressDialog.maximumValue = progressDialog.maximumValue - index
+                        return True
+    '''
     for joint in joints:
         #_ui.messageBox(str(joint.geometryOrOriginOne.objectType) + "==" + str(joint.geometryOrOriginOne.objectType) + "\n==" + str(adsk.fusion.JointOrigin.classType()))
         for occurrenceTwo in occurrencesTwo:
@@ -173,6 +215,7 @@ def jointExists(progressDialog, joints, occurrenceOne, occurrencesTwo, jointOrig
                         return True
         index += 1
         progressDialog.progressValue = index
+    '''
 
     '''
         rstr += occurrenceOne.name + "\n"
@@ -199,6 +242,7 @@ def jointExists(progressDialog, joints, occurrenceOne, occurrencesTwo, jointOrig
     #_ui.messageBox(str(rstr))
     return False
 
+
 def newJoints(newJoints):
     jointOriginDictOne = newJoints['jointOrigin']
     jointOriginList = newJoints['jointOriginList']
@@ -217,12 +261,18 @@ def newJoints(newJoints):
     # get occurrences of each component
     occurrencesOne = rootComp.occurrencesByComponent(componentOne)
 
+    #start_time = time.time()
+
     progressDialog = _ui.createProgressDialog()
     progressDialog.isBackgroundTranslucent = False
-    progressLen = len(jointOriginList)
+    progressLen = len(jointOriginList) + 2
     progressDialog.show(str('Dupe ' + componentOne.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0, progressLen)
 
-    i = 0
+    i = 2
+    progressDialog.progressValue = 1
+    progressDialog.progressValue = 2
+
+    #print("--- %s seconds ---" % (time.time() - start_time))
 
     for jointOriginDictTwo in jointOriginList:
 
@@ -231,13 +281,18 @@ def newJoints(newJoints):
         occurrencesTwo = rootComp.occurrencesByComponent(componentTwo)
 
         if componentTwo.name == rootComp.name:
-            hasJoint = jointExists(progressDialog, joints, componentTwo, occurrencesOne, jointOriginDictTwo['name'], jointOriginDictOne['name'])
-            progressDialog.reset()
-            progressDialog.maximumValue = progressLen
-            progressDialog.progressValue = i
+            hasJoint = jointExists(joints, componentTwo, occurrencesOne, jointOriginDictTwo['name'], jointOriginDictOne['name'])
+            #progressDialog.reset()
+            #progressDialog.maximumValue = progressLen
+            #progressDialog.progressValue = i
             if not hasJoint:
                 # make a new copy
-                newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
+                if rootComp.occurrences.count == 1 and rootComp.occurrences[0].joints.count < 1:
+                    # join the first element
+                    newOccurrence = rootComp.occurrences.item(0)
+                else:
+                    # make a new copy
+                    newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
                 jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
 
@@ -251,32 +306,54 @@ def newJoints(newJoints):
                 #Create the joint
                 joint = joints.add(jointInput)
         else:
+            progressDialog.maximumValue = progressDialog.maximumValue + len(occurrencesOne)
+            #jointsTemp = []
+            rootOccurrences = rootComp.occurrences
+            matrix = adsk.core.Matrix3D.create()
+
+            #p = mp.Pool(4)
+            #p.map(partial(addOccurrence, joints=joints, occurrencesTwo=occurrencesTwo, jointOriginDictOne=jointOriginDictOne, jointOriginDictTwo=jointOriginDictTwo, componentTwo=componentTwo, matrix=matrix, componentOne=componentOne, rootOccurrences=rootOccurrences), occurrencesOne) # range(0,1000) if you want to replicate your example
+            #p.close()
+            #p.join()
             for occurrenceOne in occurrencesOne:
+                    #i += 1
+                    progressDialog.progressValue = progressDialog.progressValue + 1
+                    # check occurrences for each component if joint already exists
+                    # if occurenceOne already have an existing joint between both components skip it
+                    hasJoint = jointExists(joints, occurrenceOne, occurrencesTwo, jointOriginDictOne['name'], jointOriginDictTwo['name'])
 
-                # check occurrences for each component if joint already exists
-                # if occurenceOne already have an existing joint between both components skip it
-                hasJoint = jointExists(progressDialog, joints, occurrenceOne, occurrencesTwo, jointOriginDictOne['name'], jointOriginDictTwo['name'])
-                progressDialog.reset()
-                progressDialog.maximumValue = progressLen
-                progressDialog.progressValue = i
-                if not hasJoint:
-                    # make a new copy
-                    newOccurrence = rootComp.occurrences.addExistingComponent(componentTwo, adsk.core.Matrix3D.create())
+                    if not hasJoint:
+                        # make a new copy
+                        #print("copy start --- %s seconds ---" % (time.time() - start_time))
+                        allOccurrences = rootComp.allOccurrencesByComponent(componentTwo)
+                        if allOccurrences.count == 1 and allOccurrences.item(0).joints.count < 1:
+                            # join the first element
+                            newOccurrence = allOccurrences.item(0)
+                        else:
+                            # make a new copy
+                            newOccurrence = rootOccurrences.addExistingComponent(componentTwo, matrix)
+                        #print("copy stop --- %s seconds ---" % (time.time() - start_time))
 
-                    jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictTwo['name']).createForAssemblyContext(newOccurrence), componentOne.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(occurrenceOne))
 
-                    # Set the joint input
-                    angle = adsk.core.ValueInput.createByString('0 deg')
-                    jointInput.angle = angle
-                    offset = adsk.core.ValueInput.createByString('0 cm')
-                    jointInput.offset = offset
-                    jointInput.setAsRigidJointMotion()
+                        jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictTwo['name']).createForAssemblyContext(newOccurrence), componentOne.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(occurrenceOne))
 
-                    #Create the joint
-                    joint = joints.add(jointInput)
+                        # Set the joint input
+                        angle = adsk.core.ValueInput.createByString('0 deg')
+                        jointInput.angle = angle
+                        offset = adsk.core.ValueInput.createByString('0 cm')
+                        jointInput.offset = offset
+                        jointInput.setAsRigidJointMotion()
+
+                        joints.add(jointInput)
+                #addOccurrence(occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)
+                #threading.Thread(target = addOccurrence, args = (occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)).start()
+            #for jointInput in jointsTemp:
+            #    joints.add(jointInput)
+            #print("e --- %s seconds ---" % (time.time() - start_time))
         i += 1
         progressDialog.progressValue = i
     progressDialog.hide()
+    #design.timeline.moveToEnd()
     '''
     for occurrenceTwo in occurrencesTwo:
         hasJoint = jointExists(joints, occurrenceTwo, occurrencesOne, jointOriginDictTwo['name'], jointOriginDictOne['name'])
@@ -330,8 +407,13 @@ def newJointsByOccurrences(newJoints):
             #occurrencesTwo = rootComp.occurrencesByComponent(componentTwo)
 
             if jointOriginDictTwo['component'] == rootComp.name:
-                # make a new copy
-                newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
+                # use also first element to create joints
+                if rootComp.occurrences.count == 1 and rootComp.occurrences[0].joints.count < 1:
+                    # join the first element
+                    newOccurrence = rootComp.occurrences.item(0)
+                else:
+                    # make a new copy
+                    newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
                 jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
 
@@ -345,8 +427,15 @@ def newJointsByOccurrences(newJoints):
                 #Create the joint
                 joint = joints.add(jointInput)
             else:
-                # make a new copy
-                newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
+                # use also first element to create joints
+                #_ui.messageBox(str(componentOne.occurrences.count) + " " + str(componentOne.name) + str() );
+                allOccurrences = rootComp.allOccurrencesByComponent(componentOne)
+                if allOccurrences.count == 1 and allOccurrences.item(0).joints.count < 1:
+                    # join the first element
+                    newOccurrence = allOccurrences.item(0)
+                else:
+                    # make a new copy
+                    newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
                 jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']).createForAssemblyContext(occurrenceTwo))
 
@@ -501,6 +590,17 @@ def highlightOccurrencesByComponentName(componentName):
 
         for occurrenceOne in occurrencesOne:
             highlightOccurrence(occurrenceOne)
+
+def unlightAll():
+    design = adsk.fusion.Design.cast(_app.activeProduct)
+    root = design.rootComponent
+
+    # delete all custom graphics
+    for item in list(root.customGraphicsGroups):
+        item.deleteMe()
+
+    # Refresh the graphics.
+    _app.activeViewport.refresh()
 
 def adaptThread(componentName, parameter, threadExpression):
     # get the design
@@ -1082,6 +1182,13 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
             if 'highlightJointByName' in data.keys():
                 try:
                     highlightJointByName(data['highlightJointByName'])
+                except:
+                    pass
+                args.returnData = str(json.dumps(data))
+
+            if 'unlightAll' in data.keys():
+                try:
+                    unlightAll()
                 except:
                     pass
                 args.returnData = str(json.dumps(data))
