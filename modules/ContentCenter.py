@@ -23,7 +23,7 @@ _handlers = []
 _app = adsk.core.Application.cast(None)
 _ui = adsk.core.UserInterface.cast(None)
 num = 0
-HOST = "https://custom.hk-fs.de"#"http://localhost:3000"#
+HOST = "https://custom.hk-fs.de"  # "http://localhost:3000"#
 lastImported = None
 componentStack = []
 timelineGroupStack = []
@@ -37,6 +37,7 @@ isMac = False
 # checks if OS is MacOS
 if platform.system() == 'Darwin':
     isMac = True
+
 
 def initialize():
     global num, lastImported, componentStack, timelineGroupStack, parameterStack, occurences, jointOrigins, idStack
@@ -59,6 +60,7 @@ def setMaterial(componentName, materialLibraryId, materialId):
     component.material = material
     return {"setMaterial": True}
 
+
 def getMaterials():
     data = []
     for index, materialLibrary in enumerate(_app.materialLibraries):
@@ -75,6 +77,7 @@ def getMaterials():
         data.append(materialLibDict)
     return data
 
+
 def getAllJointOrigins():
     global jointOrigins
     product = _app.activeProduct
@@ -86,6 +89,7 @@ def getAllJointOrigins():
             joint['names'].append(jointOrigin.name)
         jointOrigins.append(joint)
     return jointOrigins
+
 
 def getAllJoints():
     product = _app.activeProduct
@@ -108,6 +112,7 @@ def getAllJoints():
         joints.append(componentsJoints)
     return json.dumps({"joints": joints})
 
+
 def getComponentIndex(parameter):
     global parameterStack
     # find component index by parameter name
@@ -116,6 +121,7 @@ def getComponentIndex(parameter):
             if 'name' in parameterDict and parameter == parameterDict['name']:
                 return index
     return -1
+
 
 def getRootName():
     # Get active design
@@ -126,15 +132,17 @@ def getRootName():
     rootComp = design.rootComponent
     return rootComp.name
 
-def compareOrigins(firstOrigin,secondOrigin):
-    #ui.messageBox(str(firstVertex.geometry.x) + " " + str(firstVertex.geometry.y) + " " + str(firstVertex.geometry.z) + "\n" + str(secondVertex.geometry.x) + " " + str(secondVertex.geometry.y) + " " + str(secondVertex.geometry.z))
-    if math.isclose(firstOrigin.x,secondOrigin.x) \
-    and math.isclose(firstOrigin.y,secondOrigin.y) \
-    and math.isclose(firstOrigin.z,secondOrigin.z):
+
+def compareOrigins(firstOrigin, secondOrigin):
+    # ui.messageBox(str(firstVertex.geometry.x) + " " + str(firstVertex.geometry.y) + " " + str(firstVertex.geometry.z) + "\n" + str(secondVertex.geometry.x) + " " + str(secondVertex.geometry.y) + " " + str(secondVertex.geometry.z))
+    if math.isclose(firstOrigin.x, secondOrigin.x) \
+            and math.isclose(firstOrigin.y, secondOrigin.y) \
+            and math.isclose(firstOrigin.z, secondOrigin.z):
         return True
     return False
 
-def jointExists( joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, jointOriginNameTwo):
+
+def jointExists(joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, jointOriginNameTwo):
     # Get active design
     _app = adsk.core.Application.get()
     _ui = _app.userInterface
@@ -148,12 +156,12 @@ def jointExists( joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, join
         isRoot = True
 
     rstr = "bla\n"
-    #progressDialog.reset()
-    #progressDialog.title = str(' ' + occurrenceOne.name + '.' + jointOriginNameOne + ' - ' + jointOriginNameTwo)
-    #progressDialog.maximumValue = progressDialog.maximumValue + occurrencesTwo.count
+    # progressDialog.reset()
+    # progressDialog.title = str(' ' + occurrenceOne.name + '.' + jointOriginNameOne + ' - ' + jointOriginNameTwo)
+    # progressDialog.maximumValue = progressDialog.maximumValue + occurrencesTwo.count
 
-    #index = 0
-    #progressDialog.progressValue = index
+    # index = 0
+    # progressDialog.progressValue = index
 
     # get all joint name tuples where occurrenceOne was used
     jointDicts = []
@@ -170,29 +178,34 @@ def jointExists( joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, join
             jointDict["joint"] = joint
             jointDicts.append(jointDict)
 
-    #_ui.messageBox(str(jointDicts))
+    # _ui.messageBox(str(jointDicts))
 
     for occurrenceTwo in occurrencesTwo:
-        #index += 1
-        #progressDialog.progressValue = progressDialog.progressValue + 1
+        # index += 1
+        # progressDialog.progressValue = progressDialog.progressValue + 1
         for jointDict in jointDicts:
-            if jointDict["one"] == occurrenceOne.name and jointDict["two"] == occurrenceTwo.name or jointDict["two"] == occurrenceOne.name and jointDict["one"] == occurrenceTwo.name:
-                #_ui.messageBox("exists")
+            if jointDict["one"] == occurrenceOne.name and jointDict["two"] == occurrenceTwo.name or jointDict[
+                "two"] == occurrenceOne.name and jointDict["one"] == occurrenceTwo.name:
+                # _ui.messageBox("exists")
                 joint = jointDict["joint"]
                 if joint.geometryOrOriginOne.objectType == adsk.fusion.JointGeometry.classType() \
-                and joint.geometryOrOriginTwo.objectType == adsk.fusion.JointGeometry.classType() \
-                and occurrenceTwo.name == joint.occurrenceOne.name or isRoot:
+                        and joint.geometryOrOriginTwo.objectType == adsk.fusion.JointGeometry.classType() \
+                        and occurrenceTwo.name == joint.occurrenceOne.name or isRoot:
                     if isRoot:
                         one = occurrenceOne.jointOrigins.itemByName(jointOriginNameOne).geometry.origin
                     else:
-                        one = occurrenceOne.component.jointOrigins.itemByName(jointOriginNameOne).createForAssemblyContext(occurrenceOne).geometry.origin
+                        one = occurrenceOne.component.jointOrigins.itemByName(
+                            jointOriginNameOne).createForAssemblyContext(occurrenceOne).geometry.origin
                     two = joint.geometryOrOriginTwo.origin
                     three = joint.geometryOrOriginOne.origin
-                    four = occurrenceTwo.component.jointOrigins.itemByName(jointOriginNameTwo).createForAssemblyContext(occurrenceTwo).geometry.origin
+                    four = occurrenceTwo.component.jointOrigins.itemByName(jointOriginNameTwo).createForAssemblyContext(
+                        occurrenceTwo).geometry.origin
 
-                    if compareOrigins(one,three) and compareOrigins(two,four) or compareOrigins(one,two) and compareOrigins(three,four):
-                        #_ui.messageBox("yes")
-                        #progressDialog.maximumValue = progressDialog.maximumValue - index
+                    if compareOrigins(one, three) and compareOrigins(two, four) or compareOrigins(one,
+                                                                                                  two) and compareOrigins(
+                        three, four):
+                        # _ui.messageBox("yes")
+                        # progressDialog.maximumValue = progressDialog.maximumValue - index
                         return True
     '''
     for joint in joints:
@@ -239,7 +252,7 @@ def jointExists( joints, occurrenceOne, occurrencesTwo, jointOriginNameOne, join
     if (joint.geometryOrOriginOne.name == occurrenceOne.name and joint.geometryOrOriginTwo == occurrenceTwo.geometry \
     or joint.geometryOrOriginTwo.name == occurrenceOne.name and joint.geometryOrOriginOne == occurrenceTwo.name):
         return True'''
-    #_ui.messageBox(str(rstr))
+    # _ui.messageBox(str(rstr))
     return False
 
 
@@ -261,30 +274,31 @@ def newJoints(newJoints):
     # get occurrences of each component
     occurrencesOne = rootComp.occurrencesByComponent(componentOne)
 
-    #start_time = time.time()
+    # start_time = time.time()
 
     progressDialog = _ui.createProgressDialog()
     progressDialog.isBackgroundTranslucent = False
     progressLen = len(jointOriginList) + 2
-    progressDialog.show(str('Dupe ' + componentOne.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0, progressLen)
+    progressDialog.show(str('Dupe ' + componentOne.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0,
+                        progressLen)
 
     i = 2
     progressDialog.progressValue = 1
     progressDialog.progressValue = 2
 
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    # print("--- %s seconds ---" % (time.time() - start_time))
 
     for jointOriginDictTwo in jointOriginList:
-
 
         componentTwo = design.allComponents.itemByName(jointOriginDictTwo['component'])
         occurrencesTwo = rootComp.occurrencesByComponent(componentTwo)
 
         if componentTwo.name == rootComp.name:
-            hasJoint = jointExists(joints, componentTwo, occurrencesOne, jointOriginDictTwo['name'], jointOriginDictOne['name'])
-            #progressDialog.reset()
-            #progressDialog.maximumValue = progressLen
-            #progressDialog.progressValue = i
+            hasJoint = jointExists(joints, componentTwo, occurrencesOne, jointOriginDictTwo['name'],
+                                   jointOriginDictOne['name'])
+            # progressDialog.reset()
+            # progressDialog.maximumValue = progressLen
+            # progressDialog.progressValue = i
             if not hasJoint:
                 # make a new copy
                 if rootComp.occurrences.count == 1 and rootComp.occurrences[0].joints.count < 1:
@@ -294,7 +308,9 @@ def newJoints(newJoints):
                     # make a new copy
                     newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
-                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
+                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(
+                    jointOriginDictOne['name']).createForAssemblyContext(newOccurrence),
+                                                componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
 
                 # Set the joint input
                 angle = adsk.core.ValueInput.createByString('0 deg')
@@ -303,57 +319,61 @@ def newJoints(newJoints):
                 jointInput.offset = offset
                 jointInput.setAsRigidJointMotion()
 
-                #Create the joint
+                # Create the joint
                 joint = joints.add(jointInput)
         else:
             progressDialog.maximumValue = progressDialog.maximumValue + len(occurrencesOne)
-            #jointsTemp = []
+            # jointsTemp = []
             rootOccurrences = rootComp.occurrences
             matrix = adsk.core.Matrix3D.create()
 
-            #p = mp.Pool(4)
-            #p.map(partial(addOccurrence, joints=joints, occurrencesTwo=occurrencesTwo, jointOriginDictOne=jointOriginDictOne, jointOriginDictTwo=jointOriginDictTwo, componentTwo=componentTwo, matrix=matrix, componentOne=componentOne, rootOccurrences=rootOccurrences), occurrencesOne) # range(0,1000) if you want to replicate your example
-            #p.close()
-            #p.join()
+            # p = mp.Pool(4)
+            # p.map(partial(addOccurrence, joints=joints, occurrencesTwo=occurrencesTwo, jointOriginDictOne=jointOriginDictOne, jointOriginDictTwo=jointOriginDictTwo, componentTwo=componentTwo, matrix=matrix, componentOne=componentOne, rootOccurrences=rootOccurrences), occurrencesOne) # range(0,1000) if you want to replicate your example
+            # p.close()
+            # p.join()
             for occurrenceOne in occurrencesOne:
-                    #i += 1
-                    progressDialog.progressValue = progressDialog.progressValue + 1
-                    # check occurrences for each component if joint already exists
-                    # if occurenceOne already have an existing joint between both components skip it
-                    hasJoint = jointExists(joints, occurrenceOne, occurrencesTwo, jointOriginDictOne['name'], jointOriginDictTwo['name'])
+                # i += 1
+                progressDialog.progressValue = progressDialog.progressValue + 1
+                # check occurrences for each component if joint already exists
+                # if occurenceOne already have an existing joint between both components skip it
+                hasJoint = jointExists(joints, occurrenceOne, occurrencesTwo, jointOriginDictOne['name'],
+                                       jointOriginDictTwo['name'])
 
-                    if not hasJoint:
+                if not hasJoint:
+                    # make a new copy
+                    # print("copy start --- %s seconds ---" % (time.time() - start_time))
+                    allOccurrences = rootComp.allOccurrencesByComponent(componentTwo)
+                    if allOccurrences.count == 1 and allOccurrences.item(0).joints.count < 1:
+                        # join the first element
+                        newOccurrence = allOccurrences.item(0)
+                    else:
                         # make a new copy
-                        #print("copy start --- %s seconds ---" % (time.time() - start_time))
-                        allOccurrences = rootComp.allOccurrencesByComponent(componentTwo)
-                        if allOccurrences.count == 1 and allOccurrences.item(0).joints.count < 1:
-                            # join the first element
-                            newOccurrence = allOccurrences.item(0)
-                        else:
-                            # make a new copy
-                            newOccurrence = rootOccurrences.addExistingComponent(componentTwo, matrix)
-                        #print("copy stop --- %s seconds ---" % (time.time() - start_time))
+                        newOccurrence = rootOccurrences.addExistingComponent(componentTwo, matrix)
+                    # print("copy stop --- %s seconds ---" % (time.time() - start_time))
 
+                    jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(
+                        jointOriginDictTwo['name']).createForAssemblyContext(newOccurrence),
+                                                    componentOne.jointOrigins.itemByName(
+                                                        jointOriginDictOne['name']).createForAssemblyContext(
+                                                        occurrenceOne))
 
-                        jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictTwo['name']).createForAssemblyContext(newOccurrence), componentOne.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(occurrenceOne))
+                    # Set the joint input
+                    angle = adsk.core.ValueInput.createByString('0 deg')
+                    jointInput.angle = angle
+                    offset = adsk.core.ValueInput.createByString('0 cm')
+                    jointInput.offset = offset
+                    jointInput.setAsRigidJointMotion()
 
-                        # Set the joint input
-                        angle = adsk.core.ValueInput.createByString('0 deg')
-                        jointInput.angle = angle
-                        offset = adsk.core.ValueInput.createByString('0 cm')
-                        jointInput.offset = offset
-                        jointInput.setAsRigidJointMotion()
-
-                        joints.add(jointInput)
-                #addOccurrence(occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)
-                #threading.Thread(target = addOccurrence, args = (occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)).start()
-            #for jointInput in jointsTemp:
+                    joints.add(jointInput)
+            # addOccurrence(occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)
+            # threading.Thread(target = addOccurrence, args = (occurrenceOne, joints, occurrencesTwo, jointOriginDictOne, jointOriginDictTwo, componentTwo, matrix, componentOne, rootOccurrences)).start()
+            # for jointInput in jointsTemp:
             #    joints.add(jointInput)
-            #print("e --- %s seconds ---" % (time.time() - start_time))
+            # print("e --- %s seconds ---" % (time.time() - start_time))
         i += 1
         progressDialog.progressValue = i
     progressDialog.hide()
-    #design.timeline.moveToEnd()
+    # design.timeline.moveToEnd()
     '''
     for occurrenceTwo in occurrencesTwo:
         hasJoint = jointExists(joints, occurrenceTwo, occurrencesOne, jointOriginDictTwo['name'], jointOriginDictOne['name'])
@@ -374,6 +394,7 @@ def newJoints(newJoints):
             #Create the joint
             joint = joints.add(jointInput)'''
 
+
 def newJointsByOccurrences(newJoints):
     jointOriginDictOne = newJoints['jointOrigin']
     jointOriginList = newJoints['jointOriginList']
@@ -392,7 +413,8 @@ def newJointsByOccurrences(newJoints):
     progressDialog = _ui.createProgressDialog()
     progressDialog.isBackgroundTranslucent = False
     progressLen = len(jointOriginList)
-    progressDialog.show(str('Dupe ' + componentOne.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0, progressLen)
+    progressDialog.show(str('Dupe ' + componentOne.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0,
+                        progressLen)
 
     i = 0
 
@@ -404,7 +426,7 @@ def newJointsByOccurrences(newJoints):
             occurrenceTwo = rootComp.allOccurrences.itemByName(jointOriginDictTwo['occurrence'])
             componentTwo = occurrenceTwo.component
         if jointOriginDictTwo['occurrence']:
-            #occurrencesTwo = rootComp.occurrencesByComponent(componentTwo)
+            # occurrencesTwo = rootComp.occurrencesByComponent(componentTwo)
 
             if jointOriginDictTwo['component'] == rootComp.name:
                 # use also first element to create joints
@@ -415,7 +437,9 @@ def newJointsByOccurrences(newJoints):
                     # make a new copy
                     newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
-                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
+                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(
+                    jointOriginDictOne['name']).createForAssemblyContext(newOccurrence),
+                                                componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']))
 
                 # Set the joint input
                 angle = adsk.core.ValueInput.createByString('0 deg')
@@ -424,11 +448,11 @@ def newJointsByOccurrences(newJoints):
                 jointInput.offset = offset
                 jointInput.setAsRigidJointMotion()
 
-                #Create the joint
+                # Create the joint
                 joint = joints.add(jointInput)
             else:
                 # use also first element to create joints
-                #_ui.messageBox(str(componentOne.occurrences.count) + " " + str(componentOne.name) + str() );
+                # _ui.messageBox(str(componentOne.occurrences.count) + " " + str(componentOne.name) + str() );
                 allOccurrences = rootComp.allOccurrencesByComponent(componentOne)
                 if allOccurrences.count == 1 and allOccurrences.item(0).joints.count < 1:
                     # join the first element
@@ -437,7 +461,10 @@ def newJointsByOccurrences(newJoints):
                     # make a new copy
                     newOccurrence = rootComp.occurrences.addExistingComponent(componentOne, adsk.core.Matrix3D.create())
 
-                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(jointOriginDictOne['name']).createForAssemblyContext(newOccurrence), componentTwo.jointOrigins.itemByName(jointOriginDictTwo['name']).createForAssemblyContext(occurrenceTwo))
+                jointInput = joints.createInput(newOccurrence.component.jointOrigins.itemByName(
+                    jointOriginDictOne['name']).createForAssemblyContext(newOccurrence),
+                                                componentTwo.jointOrigins.itemByName(
+                                                    jointOriginDictTwo['name']).createForAssemblyContext(occurrenceTwo))
 
                 # Set the joint input
                 angle = adsk.core.ValueInput.createByString('0 deg')
@@ -446,11 +473,12 @@ def newJointsByOccurrences(newJoints):
                 jointInput.offset = offset
                 jointInput.setAsRigidJointMotion()
 
-                #Create the joint
+                # Create the joint
                 joint = joints.add(jointInput)
         i += 1
         progressDialog.progressValue = i
     progressDialog.hide()
+
 
 def deleteJoints(deleteJoint, deleteComponents):
     # Get active design
@@ -469,7 +497,8 @@ def deleteJoints(deleteJoint, deleteComponents):
         progressDialog = _ui.createProgressDialog()
         progressDialog.isBackgroundTranslucent = False
         progressLen = len(l)
-        progressDialog.show(str('Delete ' + component.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0, progressLen)
+        progressDialog.show(str('Delete ' + component.name), 'Percentage: %p, Current Value: %v, Total steps: %m', 0,
+                            progressLen)
 
         for index, occurrence in enumerate(l):
             if not index < 1:
@@ -500,17 +529,17 @@ def deleteJoints(deleteJoint, deleteComponents):
         #     design.timeline.moveToEnd()
 
 
-def highlightOccurrence(occurrenceOne, color=(50,180,10,255)):
+def highlightOccurrence(occurrenceOne, color=(50, 180, 10, 255)):
     design = adsk.fusion.Design.cast(_app.activeProduct)
     root = design.rootComponent
 
     # Create the color effect.
-    r,g,b,a = color
-    redColor = adsk.core.Color.create(r,g,b,a)
+    r, g, b, a = color
+    redColor = adsk.core.Color.create(r, g, b, a)
     solidColor = adsk.fusion.CustomGraphicsSolidColorEffect.create(redColor)
 
-    mx = (occurrenceOne.boundingBox.minPoint.x+occurrenceOne.boundingBox.maxPoint.x)/2
-    my = (occurrenceOne.boundingBox.minPoint.y+occurrenceOne.boundingBox.maxPoint.y)/2
+    mx = (occurrenceOne.boundingBox.minPoint.x + occurrenceOne.boundingBox.maxPoint.x) / 2
+    my = (occurrenceOne.boundingBox.minPoint.y + occurrenceOne.boundingBox.maxPoint.y) / 2
 
     vx = occurrenceOne.boundingBox.maxPoint.x
     vy = occurrenceOne.boundingBox.maxPoint.y
@@ -526,28 +555,32 @@ def highlightOccurrence(occurrenceOne, color=(50,180,10,255)):
     sx = mx + math.cos(angle) * (vx - mx) - math.sin(angle) * (vy - my)
     sy = my + math.sin(angle) * (vx - mx) + math.cos(angle) * (vy - my)
 
-
-    coordArray = [occurrenceOne.boundingBox.minPoint.x, occurrenceOne.boundingBox.minPoint.y, occurrenceOne.boundingBox.minPoint.z,
-              occurrenceOne.boundingBox.minPoint.x, occurrenceOne.boundingBox.minPoint.y, occurrenceOne.boundingBox.maxPoint.z,
-              sx,sy,occurrenceOne.boundingBox.maxPoint.z,
-              sx,sy,occurrenceOne.boundingBox.minPoint.z,
-              tx,ty,occurrenceOne.boundingBox.maxPoint.z,
-              tx,ty,occurrenceOne.boundingBox.minPoint.z,
-              occurrenceOne.boundingBox.maxPoint.x, occurrenceOne.boundingBox.maxPoint.y, occurrenceOne.boundingBox.minPoint.z,
-              occurrenceOne.boundingBox.maxPoint.x, occurrenceOne.boundingBox.maxPoint.y, occurrenceOne.boundingBox.maxPoint.z]
+    coordArray = [occurrenceOne.boundingBox.minPoint.x, occurrenceOne.boundingBox.minPoint.y,
+                  occurrenceOne.boundingBox.minPoint.z,
+                  occurrenceOne.boundingBox.minPoint.x, occurrenceOne.boundingBox.minPoint.y,
+                  occurrenceOne.boundingBox.maxPoint.z,
+                  sx, sy, occurrenceOne.boundingBox.maxPoint.z,
+                  sx, sy, occurrenceOne.boundingBox.minPoint.z,
+                  tx, ty, occurrenceOne.boundingBox.maxPoint.z,
+                  tx, ty, occurrenceOne.boundingBox.minPoint.z,
+                  occurrenceOne.boundingBox.maxPoint.x, occurrenceOne.boundingBox.maxPoint.y,
+                  occurrenceOne.boundingBox.minPoint.z,
+                  occurrenceOne.boundingBox.maxPoint.x, occurrenceOne.boundingBox.maxPoint.y,
+                  occurrenceOne.boundingBox.maxPoint.z]
     coords = adsk.fusion.CustomGraphicsCoordinates.create(coordArray)
 
     # Create a graphics group on the root component.
     graphics = root.customGraphicsGroups.add()
 
     # Create the graphics body.
-    lineIndices = [ 0,1, 0,3, 0,5, 1,2, 2,7, 3,6, 6,7, 6,5, 4,5, 4,7, 4,1, 3,2] #
+    lineIndices = [0, 1, 0, 3, 0, 5, 1, 2, 2, 7, 3, 6, 6, 7, 6, 5, 4, 5, 4, 7, 4, 1, 3, 2]  #
     lines = graphics.addLines(coords, lineIndices, False)
     lines.weight = 2
     lines.color = solidColor
 
     # Refresh the graphics.
     _app.activeViewport.refresh()
+
 
 def highlightJointByName(jointName):
     design = adsk.fusion.Design.cast(_app.activeProduct)
@@ -564,11 +597,12 @@ def highlightJointByName(jointName):
     _app.activeViewport.refresh()
 
     if occurrenceTwo:
-        highlightOccurrence(occurrenceTwo, color=(200,50,10,255))
+        highlightOccurrence(occurrenceTwo, color=(200, 50, 10, 255))
     else:
-        highlightOccurrence(joints.itemByName(jointName).parentComponent, color=(200,50,10,255))
+        highlightOccurrence(joints.itemByName(jointName).parentComponent, color=(200, 50, 10, 255))
 
     highlightOccurrence(occurrence)
+
 
 def highlightOccurrencesByComponentName(componentName):
     design = adsk.fusion.Design.cast(_app.activeProduct)
@@ -580,7 +614,7 @@ def highlightOccurrencesByComponentName(componentName):
     _app.activeViewport.refresh()
 
     if componentName == root.name:
-        highlightOccurrence(root, color=(200,50,10,255))
+        highlightOccurrence(root, color=(200, 50, 10, 255))
     else:
         # get both components
         componentOne = design.allComponents.itemByName(componentName)
@@ -590,6 +624,7 @@ def highlightOccurrencesByComponentName(componentName):
 
         for occurrenceOne in occurrencesOne:
             highlightOccurrence(occurrenceOne)
+
 
 def unlightAll():
     design = adsk.fusion.Design.cast(_app.activeProduct)
@@ -601,6 +636,7 @@ def unlightAll():
 
     # Refresh the graphics.
     _app.activeViewport.refresh()
+
 
 def adaptThread(componentName, parameter, threadExpression):
     # get the design
@@ -626,7 +662,7 @@ def adaptThread(componentName, parameter, threadExpression):
     if threadFeatures.count < 1:
         return
     thread = threadFeatures.item(threadFeatures.count - 1)
-    #threadLocation = thread.threadLocation
+    # threadLocation = thread.threadLocation
 
     isInternal = thread.threadInfo.isInternal
 
@@ -636,7 +672,7 @@ def adaptThread(componentName, parameter, threadExpression):
     recommendData = threadDataQuery.recommendThreadData(threadSize, isInternal, defaultThreadType)
 
     # create the threadInfo according to the query result
-    if recommendData[0] :
+    if recommendData[0]:
         threadInfo = threadFeatures.createThreadInfo(isInternal, defaultThreadType, recommendData[1], recommendData[2])
         # roll before thread to change
         thread.timelineObject.rollTo(True)
@@ -650,9 +686,11 @@ def adaptThread(componentName, parameter, threadExpression):
         try:
             # set the thread length to smallest possible threadLength to prevent invalid thread length error
             if thread.threadOffset:
-                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression),
+                                             adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
             else:
-                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"), adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"),
+                                             adsk.core.ValueInput.createByString("0.0000000001"), thread.threadLocation)
 
             # set threadInfo
             thread.threadInfo = threadInfo
@@ -662,23 +700,26 @@ def adaptThread(componentName, parameter, threadExpression):
                 thread.isFullLength = isFullLength
             elif thread.threadOffset and threadLength:
                 print(str(threadLength))
-                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression),
+                                             adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
             elif threadLength:
-                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"), adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
+                thread.setThreadOffsetLength(adsk.core.ValueInput.createByString("0"),
+                                             adsk.core.ValueInput.createByString(threadLength), thread.threadLocation)
         except:
             print('Failed:\n{}'.format(traceback.format_exc()))
             pass
-        #if thread.healthState > 0:
+        # if thread.healthState > 0:
         #    print(str(thread.healthState))
         design.timeline.moveToEnd()
-        #print(str(thread.healthState))
+        # print(str(thread.healthState))
+
 
 def adaptThreadLength(componentName, parameter, threadExpression):
     # get the design
     product = _app.activeProduct
     design = adsk.fusion.Design.cast(product)
 
-    #threadLength = design.unitsManager.evaluateExpression(threadExpression)
+    # threadLength = design.unitsManager.evaluateExpression(threadExpression)
 
     # get the root component of the active design.
     component = design.allComponents.itemByName(componentName)
@@ -695,11 +736,14 @@ def adaptThreadLength(componentName, parameter, threadExpression):
 
     # get thread
     thread = threadFeatures.item(threadFeatures.count - 1)
-    #threadLocation = thread.threadLocation
+    # threadLocation = thread.threadLocation
 
     thread.timelineObject.rollTo(True)
-    thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression), adsk.core.ValueInput.createByString(threadExpression + " -0.0000000001"), thread.threadLocation)
+    thread.setThreadOffsetLength(adsk.core.ValueInput.createByString(thread.threadOffset.expression),
+                                 adsk.core.ValueInput.createByString(threadExpression + " -0.0000000001"),
+                                 thread.threadLocation)
     design.timeline.moveToEnd()
+
 
 def insertContent(id, name, url):
     global lastImported, componentStack, timelineGroupStack, parameterStack, isMac, script_dir
@@ -730,9 +774,10 @@ def insertContent(id, name, url):
     downloadDir = os.path.join(script_dir, 'downloads')
     os.makedirs(downloadDir, exist_ok=True)
 
-    keepcharacters = (' ','.','_')
-    archiveFileNameUn = name + '.f3d' #url[url.rfind("/")+1:]
-    archiveFileName = os.path.join(downloadDir, "".join(c for c in archiveFileNameUn if c.isalnum() or c in keepcharacters).rstrip())
+    keepcharacters = (' ', '.', '_')
+    archiveFileNameUn = name + '.f3d'  # url[url.rfind("/")+1:]
+    archiveFileName = os.path.join(downloadDir,
+                                   "".join(c for c in archiveFileNameUn if c.isalnum() or c in keepcharacters).rstrip())
     if isMac:
         subprocess.call(['curl', '-o', archiveFileName, '-L', url])
     else:
@@ -761,7 +806,7 @@ def insertContent(id, name, url):
     for group in addedGroupNames:
         timelineGroupStack.append(group)
 
-    #des.userParameters.add("contentCenterID", adsk.core.ValueInput.createByString("0"), "", str(id))
+    # des.userParameters.add("contentCenterID", adsk.core.ValueInput.createByString("0"), "", str(id))
 
     params = des.userParameters
     paramsStr = []
@@ -787,11 +832,13 @@ def insertContent(id, name, url):
 
     return {"name": componentStack[-1], "parameters": parameters, "jointOrigins": jointOrigins}
 
+
 def find(lst, key, value):
     for i, dic in enumerate(lst):
         if dic[key] == value:
             return i
     return -1
+
 
 def getParameters():
     design = _app.activeProduct
@@ -804,6 +851,7 @@ def getParameters():
         dict['comment'] = param.comment
         list.append(dict)
     return json.dumps({'parameters': list})
+
 
 def getUserParameters():
     global _app
@@ -838,19 +886,24 @@ def getUserParameters():
                     if index > -1:
                         k = find(userParamNames[index]['parameters'], 'name', userParam.name)
                         if not k > -1:
-                            userParamNames[index]['parameters'].append({"name": userParam.name, "expression": userParam.expression, "comment": userParam.comment})
+                            userParamNames[index]['parameters'].append(
+                                {"name": userParam.name, "expression": userParam.expression,
+                                 "comment": userParam.comment})
                     else:
                         d = {}
                         d['component'] = componentNames[i]
-                        d['parameters'] = [{"name": userParam.name, "expression": userParam.expression, "comment": userParam.comment}]
+                        d['parameters'] = [
+                            {"name": userParam.name, "expression": userParam.expression, "comment": userParam.comment}]
                         userParamNames.append(d)
 
     return json.dumps({'userParameters': userParamNames})
+
 
 # Event handler that reacts to any changes the user makes to any of the command inputs.
 class SelectionInputChangedHandler(adsk.core.InputChangedEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         global strInput
         try:
@@ -864,10 +917,12 @@ class SelectionInputChangedHandler(adsk.core.InputChangedEventHandler):
         except:
             _ui().messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
+
 # Event handler that reacts to any changes the user makes to any of the command inputs.
 class SelectionExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         global strInput
         try:
@@ -875,7 +930,7 @@ class SelectionExecuteHandler(adsk.core.CommandEventHandler):
 
             # Code to react to the event.
             app = adsk.core.Application.get()
-            ui  = app.userInterface
+            ui = app.userInterface
 
             command = args.firingEvent.sender
             inputs = command.commandInputs
@@ -895,7 +950,7 @@ class SelectionExecuteHandler(adsk.core.CommandEventHandler):
                     if selectionInput.selection(i).entity.assemblyContext:
                         dict['occurrence'] = selectionInput.selection(i).entity.assemblyContext.name
                 list.append(dict)
-            #ui.messageBox(str(list))
+            # ui.messageBox(str(list))
 
             palette = _ui.palettes.itemById('myPalette')
             if palette:
@@ -910,12 +965,13 @@ class SelectionExecuteHandler(adsk.core.CommandEventHandler):
 class SelectionDestroyHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         global _ui
         try:
             # When the command is done, terminate the script
             # This will release all globals which will remove all event handlers
-            #adsk.terminate()
+            # adsk.terminate()
             # Get the existing command definition or create it if it doesn't already exist.
             cmdDef = _ui.commandDefinitions.itemById('cmdInputSelections')
             cmdDef.deleteMe()
@@ -928,6 +984,7 @@ class SelectionDestroyHandler(adsk.core.CommandEventHandler):
 class SelectionCreatedHandler(adsk.core.CommandCreatedEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             # Get the command that was created.
@@ -969,10 +1026,10 @@ def createInputSelections():
         _app = adsk.core.Application.get()
         _ui = _app.userInterface
 
-
         cmdDef = _ui.commandDefinitions.itemById('cmdInputSelections')
         if not cmdDef:
-            cmdDef = _ui.commandDefinitions.addButtonDefinition('cmdInputSelections', 'Select Inputs for Joints', 'Sample to demonstrate various command inputs.')
+            cmdDef = _ui.commandDefinitions.addButtonDefinition('cmdInputSelections', 'Select Inputs for Joints',
+                                                                'Sample to demonstrate various command inputs.')
 
             # Connect to the command created event.
             onCommandCreated = SelectionCreatedHandler()
@@ -988,21 +1045,24 @@ def createInputSelections():
                 pass
 
         # Prevent this module from being terminated when the script returns, because we are waiting for event handlers to fire.
-        #adsk.autoTerminate(False)
+        # adsk.autoTerminate(False)
     except:
         if _ui:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+
 
 # Event handler for the commandExecuted event.
 class ShowPaletteCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             # Create and display the palette.
             palette = _ui.palettes.itemById('myPalette')
             if not palette:
-                palette = _ui.palettes.add('myPalette', 'Content Center', HOST, True, True, True, 1000, 1000) # ./palette/build/index.html
+                palette = _ui.palettes.add('myPalette', 'Content Center', HOST, True, True, True, 1000,
+                                           1000)  # ./palette/build/index.html
 
                 # Dock the palette to the right side of Fusion window.
                 palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
@@ -1026,6 +1086,7 @@ class ShowPaletteCommandExecuteHandler(adsk.core.CommandEventHandler):
 class ShowPaletteCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             command = args.command
@@ -1041,6 +1102,7 @@ class ShowPaletteCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 class SendInfoCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             # Send information to the palette. This will trigger an event in the javascript
@@ -1059,6 +1121,7 @@ class SendInfoCommandExecuteHandler(adsk.core.CommandEventHandler):
 class SendInfoCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             command = args.command
@@ -1073,10 +1136,11 @@ class SendInfoCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 class MyCloseEventHandler(adsk.core.UserInterfaceGeneralEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             return
-            #_ui.messageBox('Close button is clicked.')
+            # _ui.messageBox('Close button is clicked.')
         except:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
@@ -1085,6 +1149,7 @@ class MyCloseEventHandler(adsk.core.UserInterfaceGeneralEventHandler):
 class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
     def __init__(self):
         super().__init__()
+
     def notify(self, args):
         try:
             htmlArgs = adsk.core.HTMLEventArgs.cast(args)
@@ -1096,12 +1161,13 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
                     idStack.append(data["id"])
                 except:
                     pass
-                args.returnData = str({"id": data['id'],"name": resInput['name'], 'parameters': resInput['parameters'], 'jointOrigins': resInput['jointOrigins'] })
+                args.returnData = str({"id": data['id'], "name": resInput['name'], 'parameters': resInput['parameters'],
+                                       'jointOrigins': resInput['jointOrigins']})
 
             if 'getJointOrigins' in data.keys():
                 initialize()
                 jointOrigins = getAllJointOrigins()
-                args.returnData = str({'jointOrigins': jointOrigins })
+                args.returnData = str({'jointOrigins': jointOrigins})
 
             if 'getJoints' in data.keys():
                 initialize()
@@ -1110,7 +1176,7 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
 
             if 'getParameters' in data.keys():
                 try:
-                    parameters = getUserParameters() # old getParameters()
+                    parameters = getUserParameters()  # old getParameters()
                 except:
                     pass
                 args.returnData = str(parameters)
@@ -1203,7 +1269,10 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
             if 'getMaterials' in data.keys():
                 result = getMaterials()
                 args.returnData = str(result)
-            if 'setMaterial' in data.keys() and 'name' in data.keys() and 'materialId' in data.keys() and 'materialLibraryId' in data.keys():
+            if 'setMaterial' in data.keys() and \
+                    'name' in data.keys() and \
+                    'materialId' in data.keys() and \
+                    'materialLibraryId' in data.keys():
                 try:
                     result = setMaterial(data['name'], data['materialLibraryId'], data['materialId'])
                 except:
@@ -1211,44 +1280,45 @@ class MyHTMLEventHandler(adsk.core.HTMLEventHandler):
                 args.returnData = str({"setMaterial": "jio"})
         except:
             pass
-            #_ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+            # _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
 
 def run(context):
     try:
         global _ui, _app
         _app = adsk.core.Application.get()
-        _ui  = _app.userInterface
+        _ui = _app.userInterface
 
         # Add a command that displays the panel.
         showPaletteCmdDef = _ui.commandDefinitions.itemById('showPalette')
         if not showPaletteCmdDef:
-            showPaletteCmdDef = _ui.commandDefinitions.addButtonDefinition('showPalette', 'Customizable Content Center', 'Show the customizable content center', './resources')
+            showPaletteCmdDef = _ui.commandDefinitions.addButtonDefinition('showPalette', 'Customizable Content Center',
+                                                                           'Show the customizable content center',
+                                                                           './resources')
 
             # Connect to Command Created event.
             onCommandCreated = ShowPaletteCommandCreatedHandler()
             showPaletteCmdDef.commandCreated.add(onCommandCreated)
             handlers.append(onCommandCreated)
 
-
         # Add a command under ADD-INS panel which sends information from Fusion to the palette's HTML.
-        #sendInfoCmdDef = _ui.commandDefinitions.itemById('sendInfoToHTML')
-        #if not sendInfoCmdDef:
+        # sendInfoCmdDef = _ui.commandDefinitions.itemById('sendInfoToHTML')
+        # if not sendInfoCmdDef:
         #    sendInfoCmdDef = _ui.commandDefinitions.addButtonDefinition('sendInfoToHTML', 'Send info to Palette', 'Send Info to Palette HTML', '')
 
-            # Connect to Command Created event.
+        # Connect to Command Created event.
         #    onCommandCreated = SendInfoCommandCreatedHandler()
         #    sendInfoCmdDef.commandCreated.add(onCommandCreated)
         #    handlers.append(onCommandCreated)
 
         # Add the command to the toolbar.
-        panel = _ui.allToolbarPanels.itemById('InsertPanel') #SolidScriptsAddinsPanel
+        panel = _ui.allToolbarPanels.itemById('InsertPanel')  # SolidScriptsAddinsPanel
         cntrl = panel.controls.itemById('showPalette')
         if not cntrl:
             panel.controls.addCommand(showPaletteCmdDef)
 
-        #cntrl = panel.controls.itemById('sendInfoToHTML')
-        #if not cntrl:
+        # cntrl = panel.controls.itemById('sendInfoToHTML')
+        # if not cntrl:
         #    panel.controls.addCommand(sendInfoCmdDef)
     except:
         if _ui:
@@ -1278,7 +1348,7 @@ def stop(context):
         if cmdDef:
             cmdDef.deleteMe()
 
-        #_ui.messageBox('Stop addin')
+        # _ui.messageBox('Stop addin')
     except:
         if _ui:
             _ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
