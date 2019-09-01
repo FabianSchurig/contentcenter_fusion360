@@ -211,7 +211,7 @@ def _joint_exists(joints, occurrence_one, occurrences_two, joint_origin_name_one
 
 def _new_joints(new_joints):
     joint_origin_dict_one = new_joints['jointOrigin']
-    joint_origin_list = new_joints['joint_origin_list']
+    joint_origin_list = new_joints['jointOriginList']
 
     # Get active design
     product = _app.activeProduct
@@ -351,7 +351,7 @@ def _new_joints(new_joints):
 
 def _new_joints_by_occurrences(new_joints):
     joint_origin_dict_one = new_joints['jointOrigin']
-    joint_origin_list = new_joints['joint_origin_list']
+    joint_origin_list = new_joints['jointOriginList']
 
     # Get active design
     product = _app.activeProduct
