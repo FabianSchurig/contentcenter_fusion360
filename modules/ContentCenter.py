@@ -27,7 +27,7 @@ _handlers = []
 _app = adsk.core.Application.cast(None)
 _ui = adsk.core.UserInterface.cast(None)
 _num = 0
-_host = "http://localhost:3000"  # "https://custom.hk-fs.de"
+_host = "https://custom.hk-fs.de"  # "http://localhost:3000"
 _last_imported = None
 _component_stack = []
 _timeline_group_stack = []
@@ -1019,8 +1019,8 @@ class ShowPaletteCommandExecuteHandler(adsk.core.CommandEventHandler):
             # Create and display the palette.
             palette = _ui.palettes.itemById('myPalette')
             if not palette:
-                palette = _ui.palettes.add('myPalette', 'Content Center', _host, True, True, True, 1000,
-                                           1000, _use_new_browser)  # ./palette/build/index.html
+                palette = _ui.palettes.add('myPalette', 'Content Center', _host, True, True, True, 800,
+                                           600, _use_new_browser)  # ./palette/build/index.html
 
                 # Dock the palette to the right side of Fusion window.
                 palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
