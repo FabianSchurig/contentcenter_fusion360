@@ -27,7 +27,7 @@ _handlers = []
 _app = adsk.core.Application.cast(None)
 _ui = adsk.core.UserInterface.cast(None)
 _num = 0
-_host = "https://custom.hk-fs.de"  # "http://localhost:3000"#
+_host = "http://localhost:3000"  # "https://custom.hk-fs.de"
 _last_imported = None
 _component_stack = []
 _timeline_group_stack = []
@@ -35,7 +35,7 @@ _parameter_stack = []
 _occurrences = []
 _joint_origins = []
 _id_stack = []
-_use_new_browser = False
+_use_new_browser = True
 
 _is_mac_os = False
 
@@ -494,22 +494,12 @@ def _highlight_occurrence(occurrence_one, color=(50, 180, 10, 255)):
     red_color = adsk.core.Color.create(r, g, b, a)
     solid_color = adsk.fusion.CustomGraphicsSolidColorEffect.create(red_color)
 
-    mx = (occurrence_one.boundingBox.minPoint.x + occurrence_one.boundingBox.maxPoint.x) / 2
-    my = (occurrence_one.boundingBox.minPoint.y + occurrence_one.boundingBox.maxPoint.y) / 2
-
-    vx = occurrence_one.boundingBox.maxPoint.x
-    vy = occurrence_one.boundingBox.maxPoint.y
-
-    wx = occurrence_one.boundingBox.minPoint.x
-    wy = occurrence_one.boundingBox.minPoint.y
-
-    angle = math.radians(90)
-
-    tx = mx + math.cos(angle) * (wx - mx) - math.sin(angle) * (wy - my)
-    ty = my + math.sin(angle) * (wx - mx) + math.cos(angle) * (wy - my)
-
-    sx = mx + math.cos(angle) * (vx - mx) - math.sin(angle) * (vy - my)
-    sy = my + math.sin(angle) * (vx - mx) + math.cos(angle) * (vy - my)
+    tx = occurrence_one.boundingBox.minPoint.x + abs(
+        occurrence_one.boundingBox.minPoint.x - occurrence_one.boundingBox.maxPoint.x)
+    ty = occurrence_one.boundingBox.minPoint.y
+    sx = occurrence_one.boundingBox.minPoint.x
+    sy = occurrence_one.boundingBox.minPoint.y + abs(
+        occurrence_one.boundingBox.minPoint.y - occurrence_one.boundingBox.maxPoint.y)
 
     coord_array = [occurrence_one.boundingBox.minPoint.x, occurrence_one.boundingBox.minPoint.y,
                    occurrence_one.boundingBox.minPoint.z,
@@ -533,6 +523,21 @@ def _highlight_occurrence(occurrence_one, color=(50, 180, 10, 255)):
     lines = graphics.addLines(coords, line_indices, False)
     lines.weight = 2
     lines.color = solid_color
+    text_matrix = adsk.core.Matrix3D.create()
+
+    text_matrix.setToAlignCoordinateSystems(adsk.core.Point3D.create(0, 0, 0), adsk.core.Vector3D.create(1, 0, 0),
+                                            adsk.core.Vector3D.create(0, 1, 0), adsk.core.Vector3D.create(0, 0, 1),
+                                            adsk.core.Point3D.create(occurrence_one.boundingBox.minPoint.x,
+                                                                     occurrence_one.boundingBox.minPoint.y,
+                                                                     occurrence_one.boundingBox.maxPoint.z),
+                                            adsk.core.Vector3D.create(0, 1, 0),
+                                            adsk.core.Vector3D.create(0, 0, 1), adsk.core.Vector3D.create(1, 0, 0))
+
+    text = graphics.addText(occurrence_one.name, "Calibri",
+                            abs(occurrence_one.boundingBox.minPoint.x - occurrence_one.boundingBox.maxPoint.x) \
+                            * 2 / len(occurrence_one.name),
+                            text_matrix)
+    text.color = solid_color
 
     # Refresh the graphics.
     _app.activeViewport.refresh()
@@ -788,7 +793,7 @@ def _insert_content(id, name, url):
     joint_origins = []
     joint_origins.append({"component": component.name, "names": joint_origin_names, "selectedPresets": []})
 
-    return {"name": _component_stack[-1], "parameters": parameters, "joint_origins": joint_origins}
+    return {"name": _component_stack[-1], "parameters": parameters, "jointOrigins": joint_origins}
 
 
 def _find(lst, key, value):
